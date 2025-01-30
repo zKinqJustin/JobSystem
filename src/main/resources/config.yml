@@ -1,0 +1,99 @@
+# Database configuration
+database:
+  host: localhost
+  port: 3306
+  name: jobsystem
+  username: root
+  password: password
+
+# Job XP configuration
+xp:
+  woodcutter:
+    log: 10
+  fisher:
+    fish: 15
+  miner:
+    ore: 20
+  butcher:
+    kill: 25
+  farmer:
+    harvest: 15
+
+# Money earned per action
+money:
+  woodcutter: 5.0
+  fisher: 7.5
+  miner: 10.0
+  butcher: 12.5
+  farmer: 7.5
+
+# GUI configuration
+gui:
+  title: "&6&lSelect a Job"
+  size: 27
+  slots:
+    woodcutter: 10
+    fisher: 12
+    miner: 14
+    butcher: 16
+    farmer: 18
+
+# Job item configuration
+job_items:
+  woodcutter: DIAMOND_AXE
+  fisher: FISHING_ROD
+  miner: DIAMOND_PICKAXE
+  butcher: IRON_SWORD
+  farmer: DIAMOND_HOE
+
+# Job names in GUI
+job_names:
+  woodcutter: "&a&lWoodcutter"
+  fisher: "&b&lFisher"
+  miner: "&7&lMiner"
+  butcher: "&c&lButcher"
+  farmer: "&e&lFarmer"
+
+# Job descriptions in GUI
+job_descriptions:
+  woodcutter:
+    - "&7Chop trees to earn money and experience"
+    - "&7Use &f/jobs &7to change your job"
+  fisher:
+    - "&7Catch fish to earn money and experience"
+    - "&7Use &f/jobs &7to change your job"
+  miner:
+    - "&7Mine ores to earn money and experience"
+    - "&7Use &f/jobs &7to change your job"
+  butcher:
+    - "&7Slaughter animals to earn money and experience"
+    - "&7Use &f/jobs &7to change your job"
+  farmer:
+    - "&7Harvest crops to earn money and experience"
+    - "&7Use &f/jobs &7to change your job"
+
+# Job buffs configuration
+buffs:
+  woodcutter:
+    5: FAST_DIGGING:1
+    10: SPEED:1
+  fisher:
+    5: LUCK:1
+    10: WATER_BREATHING:1
+  miner:
+    5: FAST_DIGGING:1
+    10: NIGHT_VISION:1
+  butcher:
+    5: INCREASE_DAMAGE:1
+    10: SPEED:1
+  farmer:
+    5: FAST_DIGGING:1
+    10: SATURATION:1
+
+# Scoreboard configuration
+scoreboard:
+  title: "&6&lCB-1"
+  job: "&eJob: &f%job%"
+  level: "&eLevel: &f%level%"
+  money: "&eMoney: &f$%money%"
+

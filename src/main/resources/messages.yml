@@ -1,0 +1,5 @@
+player_only: "&cThis command can only be used by players."
+job_set: "&aYou have chosen the &6%job% &ajob!"
+level_up: "&aCongratulations! You've reached level &6%level% &ain your &6%job% &ajob!"
+money_earned: "&aYou earned &6$%amount% &afrom your job!"
+

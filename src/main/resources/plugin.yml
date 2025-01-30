@@ -1,0 +1,9 @@
+name: JobSystem
+version: '1.0'
+main: de.zkinqjustin.jobsystem.JobSystem
+api-version: '1.21'
+depend: [Vault]
+commands:
+  jobs:
+    description: Open the job selection GUI
+    usage: /<command>
