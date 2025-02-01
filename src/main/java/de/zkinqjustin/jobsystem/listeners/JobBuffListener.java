@@ -33,12 +33,18 @@ public class JobBuffListener implements Listener {
         String activeJob = plugin.getJobManager().getActiveJob(player);
         if (activeJob == null) return;
 
+        int jobLevel = plugin.getJobManager().getJobLevel(player, activeJob);
+
         switch (activeJob.toLowerCase()) {
             case "woodcutter":
-                handleWoodcutterBuff(event);
+                if (jobLevel >= plugin.getConfig().getInt("buff_levels.woodcutter")) {
+                    handleWoodcutterBuff(event);
+                }
                 break;
             case "miner":
-                handleMinerBuff(event);
+                if (jobLevel >= plugin.getConfig().getInt("buff_levels.miner")) {
+                    handleMinerBuff(event);
+                }
                 break;
             case "farmer":
                 handleFarmerBuff(event);

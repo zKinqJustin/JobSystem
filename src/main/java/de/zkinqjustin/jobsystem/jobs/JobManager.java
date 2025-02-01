@@ -127,5 +127,10 @@ public class JobManager {
             setPlayerJob(player, lastJob);
         }
     }
+
+    public int getJobLevel(Player player, String jobName) {
+        DatabaseManager.JobData jobData = plugin.getDatabaseManager().getPlayerJob(player.getUniqueId(), jobName);
+        return jobData != null ? jobData.level : 0;
+    }
 }
 

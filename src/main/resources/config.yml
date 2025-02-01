@@ -97,3 +97,8 @@ scoreboard:
   level: "&eLevel: &f%level%"
   money: "&eMoney: &f$%money%"
 
+# Buff level requirements
+buff_levels:
+  woodcutter: 5
+  miner: 5
+
