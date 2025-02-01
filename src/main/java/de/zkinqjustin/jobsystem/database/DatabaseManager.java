@@ -46,59 +46,83 @@ public class DatabaseManager {
 
     private void createTables() throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS player_jobs (" +
-                "uuid VARCHAR(36)," +
-                "job_name VARCHAR(50)," +
-                "level INT," +
-                "experience INT," +
-                "PRIMARY KEY (uuid, job_name)" +
+                "uuid VARCHAR(36) PRIMARY KEY," +
+                "current_job VARCHAR(50)," +
+                "woodcutter_level INT DEFAULT 1," +
+                "woodcutter_xp INT DEFAULT 0," +
+                "fisher_level INT DEFAULT 1," +
+                "fisher_xp INT DEFAULT 0," +
+                "miner_level INT DEFAULT 1," +
+                "miner_xp INT DEFAULT 0," +
+                "butcher_level INT DEFAULT 1," +
+                "butcher_xp INT DEFAULT 0," +
+                "farmer_level INT DEFAULT 1," +
+                "farmer_xp INT DEFAULT 0" +
                 ")";
         try (Statement statement = connection.createStatement()) {
             statement.execute(sql);
         }
     }
 
-    public void savePlayerJob(Player player, String jobName, int level, int experience) {
-        String sql = "INSERT INTO player_jobs (uuid, job_name, level, experience) VALUES (?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE level = ?, experience = ?";
+    public void savePlayerJob(Player player, String currentJob, Map<String, JobData> jobData) {
+        String sql = "INSERT INTO player_jobs (uuid, current_job, " +
+                "woodcutter_level, woodcutter_xp, fisher_level, fisher_xp, " +
+                "miner_level, miner_xp, butcher_level, butcher_xp, " +
+                "farmer_level, farmer_xp) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE current_job = ?, " +
+                "woodcutter_level = ?, woodcutter_xp = ?, " +
+                "fisher_level = ?, fisher_xp = ?, " +
+                "miner_level = ?, miner_xp = ?, " +
+                "butcher_level = ?, butcher_xp = ?, " +
+                "farmer_level = ?, farmer_xp = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, player.getUniqueId().toString());
-            pstmt.setString(2, jobName);
-            pstmt.setInt(3, level);
-            pstmt.setInt(4, experience);
-            pstmt.setInt(5, level);
-            pstmt.setInt(6, experience);
+            pstmt.setString(2, currentJob);
+            setJobData(pstmt, 3, jobData.get("Woodcutter"));
+            setJobData(pstmt, 5, jobData.get("Fisher"));
+            setJobData(pstmt, 7, jobData.get("Miner"));
+            setJobData(pstmt, 9, jobData.get("Butcher"));
+            setJobData(pstmt, 11, jobData.get("Farmer"));
+            pstmt.setString(13, currentJob);
+            setJobData(pstmt, 14, jobData.get("Woodcutter"));
+            setJobData(pstmt, 16, jobData.get("Fisher"));
+            setJobData(pstmt, 18, jobData.get("Miner"));
+            setJobData(pstmt, 20, jobData.get("Butcher"));
+            setJobData(pstmt, 22, jobData.get("Farmer"));
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public Map<String, JobData> getPlayerJobs(UUID uuid) {
-        Map<String, JobData> jobs = new HashMap<>();
-        String sql = "SELECT job_name, level, experience FROM player_jobs WHERE uuid = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, uuid.toString());
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                String jobName = rs.getString("job_name");
-                int level = rs.getInt("level");
-                int experience = rs.getInt("experience");
-                jobs.put(jobName, new JobData(jobName, level, experience));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+    private void setJobData(PreparedStatement pstmt, int startIndex, JobData jobData) throws SQLException {
+        if (jobData != null) {
+            pstmt.setInt(startIndex, jobData.level);
+            pstmt.setInt(startIndex + 1, jobData.xp);
+        } else {
+            pstmt.setInt(startIndex, 1);
+            pstmt.setInt(startIndex + 1, 0);
         }
-        return jobs;
     }
 
-    public JobData getPlayerJob(UUID uuid, String jobName) {
-        String sql = "SELECT level, experience FROM player_jobs WHERE uuid = ? AND job_name = ?";
+    public PlayerJobData getPlayerJobData(UUID uuid) {
+        String sql = "SELECT current_job, " +
+                "woodcutter_level, woodcutter_xp, fisher_level, fisher_xp, " +
+                "miner_level, miner_xp, butcher_level, butcher_xp, " +
+                "farmer_level, farmer_xp FROM player_jobs WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, uuid.toString());
-            pstmt.setString(2, jobName);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return new JobData(jobName, rs.getInt("level"), rs.getInt("experience"));
+                String currentJob = rs.getString("current_job");
+                Map<String, JobData> jobData = new HashMap<>();
+                jobData.put("Woodcutter", new JobData(rs.getInt("woodcutter_level"), rs.getInt("woodcutter_xp")));
+                jobData.put("Fisher", new JobData(rs.getInt("fisher_level"), rs.getInt("fisher_xp")));
+                jobData.put("Miner", new JobData(rs.getInt("miner_level"), rs.getInt("miner_xp")));
+                jobData.put("Butcher", new JobData(rs.getInt("butcher_level"), rs.getInt("butcher_xp")));
+                jobData.put("Farmer", new JobData(rs.getInt("farmer_level"), rs.getInt("farmer_xp")));
+                return new PlayerJobData(currentJob, jobData);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -106,15 +130,23 @@ public class DatabaseManager {
         return null;
     }
 
-    public static class JobData {
-        public final String job;
-        public final int level;
-        public final int experience;
+    public static class PlayerJobData {
+        public final String currentJob;
+        public final Map<String, JobData> jobData;
 
-        public JobData(String job, int level, int experience) {
-            this.job = job;
+        public PlayerJobData(String currentJob, Map<String, JobData> jobData) {
+            this.currentJob = currentJob;
+            this.jobData = jobData;
+        }
+    }
+
+    public static class JobData {
+        public int level;
+        public int xp;
+
+        public JobData(int level, int xp) {
             this.level = level;
-            this.experience = experience;
+            this.xp = xp;
         }
     }
 }

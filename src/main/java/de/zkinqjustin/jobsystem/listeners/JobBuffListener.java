@@ -37,40 +37,50 @@ public class JobBuffListener implements Listener {
 
         switch (activeJob.toLowerCase()) {
             case "woodcutter":
-                if (jobLevel >= plugin.getConfig().getInt("buff_levels.woodcutter")) {
-                    handleWoodcutterBuff(event);
+                if (jobLevel >= plugin.getConfig().getInt("buff_levels.woodcutter", 5)) {
+                    int blocksBreak = handleWoodcutterBuff(event);
+                    plugin.getJobManager().addExperience(player, activeJob, plugin.getConfigManager().getInt("xp.woodcutter.log") * blocksBreak);
+                    plugin.getEconomy().depositPlayer(player, plugin.getConfigManager().getDouble("money.woodcutter") * blocksBreak);
                 }
                 break;
             case "miner":
-                if (jobLevel >= plugin.getConfig().getInt("buff_levels.miner")) {
-                    handleMinerBuff(event);
+                if (jobLevel >= plugin.getConfig().getInt("buff_levels.miner", 5)) {
+                    int blocksBreak = handleMinerBuff(event);
+                    plugin.getJobManager().addExperience(player, activeJob, plugin.getConfigManager().getInt("xp.miner.ore") * blocksBreak);
+                    plugin.getEconomy().depositPlayer(player, plugin.getConfigManager().getDouble("money.miner") * blocksBreak);
                 }
                 break;
             case "farmer":
-                handleFarmerBuff(event);
+                if (jobLevel >= plugin.getConfig().getInt("buff_levels.farmer", 5)) {
+                    handleFarmerBuff(event);
+                }
                 break;
         }
     }
 
-    private void handleWoodcutterBuff(BlockBreakEvent event) {
+    private int handleWoodcutterBuff(BlockBreakEvent event) {
         if (event.getBlock().getType().name().endsWith("_LOG")) {
-            breakConnectedBlocks(event.getBlock(), event.getBlock().getType());
+            return breakConnectedBlocks(event.getBlock(), event.getBlock().getType());
         }
+        return 0;
     }
 
-    private void handleMinerBuff(BlockBreakEvent event) {
+    private int handleMinerBuff(BlockBreakEvent event) {
         if (event.getBlock().getType().name().endsWith("_ORE")) {
-            breakConnectedBlocks(event.getBlock(), event.getBlock().getType());
+            return breakConnectedBlocks(event.getBlock(), event.getBlock().getType());
         }
+        return 0;
     }
 
-    private void breakConnectedBlocks(Block startBlock, Material material) {
+    private int breakConnectedBlocks(Block startBlock, Material material) {
         List<Block> blocksToBreak = new ArrayList<>();
         findConnectedBlocks(startBlock, material, blocksToBreak, 64); // Limit to 64 blocks to prevent lag
 
         for (Block block : blocksToBreak) {
             block.breakNaturally();
         }
+
+        return blocksToBreak.size();
     }
 
     private void findConnectedBlocks(Block block, Material material, List<Block> blocksToBreak, int limit) {
@@ -126,11 +136,14 @@ public class JobBuffListener implements Listener {
             Player player = event.getPlayer();
             String activeJob = plugin.getJobManager().getActiveJob(player);
             if (activeJob != null && activeJob.equalsIgnoreCase("fisher")) {
-                if (random.nextDouble() < 0.1) { // 10% chance for treasure
-                    Entity caught = event.getCaught();
-                    if (caught instanceof Item) {
-                        Item item = (Item) caught;
-                        item.setItemStack(getRandomTreasure());
+                int jobLevel = plugin.getJobManager().getJobLevel(player, activeJob);
+                if (jobLevel >= plugin.getConfig().getInt("buff_levels.fisher", 5)) {
+                    if (random.nextDouble() < 0.1) { // 10% chance for treasure
+                        Entity caught = event.getCaught();
+                        if (caught instanceof Item) {
+                            Item item = (Item) caught;
+                            item.setItemStack(getRandomTreasure());
+                        }
                     }
                 }
             }
@@ -138,7 +151,6 @@ public class JobBuffListener implements Listener {
     }
 
     private ItemStack getRandomTreasure() {
-        // This is a simple implementation. You can expand this with more treasures and rarities.
         Material[] treasures = {
                 Material.DIAMOND, Material.EMERALD, Material.GOLD_INGOT, Material.IRON_INGOT,
                 Material.PRISMARINE_CRYSTALS, Material.PRISMARINE_SHARD, Material.NAUTILUS_SHELL
@@ -152,13 +164,20 @@ public class JobBuffListener implements Listener {
         if (killer != null) {
             String activeJob = plugin.getJobManager().getActiveJob(killer);
             if (activeJob != null && activeJob.equalsIgnoreCase("butcher")) {
-                ItemStack weapon = killer.getInventory().getItemInMainHand();
-                if (weapon.getType().name().endsWith("_AXE")) {
-                    List<ItemStack> drops = event.getDrops();
-                    for (ItemStack drop : new ArrayList<>(drops)) {
-                        if (random.nextDouble() < 0.5) { // 50% chance to double each drop
-                            drops.add(drop.clone());
+                int jobLevel = plugin.getJobManager().getJobLevel(killer, activeJob);
+                if (jobLevel >= plugin.getConfig().getInt("buff_levels.butcher", 5)) {
+                    ItemStack weapon = killer.getInventory().getItemInMainHand();
+                    if (weapon.getType().name().endsWith("_AXE")) {
+                        List<ItemStack> drops = event.getDrops();
+                        int extraDrops = 0;
+                        for (ItemStack drop : new ArrayList<>(drops)) {
+                            if (random.nextDouble() < 0.5) { // 50% chance to double each drop
+                                drops.add(drop.clone());
+                                extraDrops++;
+                            }
                         }
+                        plugin.getJobManager().addExperience(killer, activeJob, plugin.getConfigManager().getInt("xp.butcher.kill") * (1 + extraDrops));
+                        plugin.getEconomy().depositPlayer(killer, plugin.getConfigManager().getDouble("money.butcher") * (1 + extraDrops));
                     }
                 }
             }

@@ -96,9 +96,13 @@ scoreboard:
   job: "&eJob: &f%job%"
   level: "&eLevel: &f%level%"
   money: "&eMoney: &f$%money%"
+  xp: "&eXP: &f%xp%"
 
 # Buff level requirements
 buff_levels:
   woodcutter: 5
   miner: 5
+  fisher: 5
+  butcher: 5
+  farmer: 5
 

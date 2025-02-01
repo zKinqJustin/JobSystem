@@ -40,11 +40,16 @@ public class JobEventListener implements Listener {
         Player player = event.getPlayer();
         String activeJob = plugin.getJobManager().getActiveJob(player);
         if (activeJob != null) {
+            int jobLevel = plugin.getJobManager().getJobLevel(player, activeJob);
             Material material = event.getBlock().getType();
             if (activeJob.equals("Woodcutter") && material.name().endsWith("_LOG")) {
-                addJobExperience(player, "Woodcutter", plugin.getConfigManager().getInt("xp.woodcutter.log"));
+                if (jobLevel < plugin.getConfig().getInt("buff_levels.woodcutter", 5)) {
+                    addJobExperience(player, "Woodcutter", plugin.getConfigManager().getInt("xp.woodcutter.log"));
+                }
             } else if (activeJob.equals("Miner") && material.name().endsWith("_ORE")) {
-                addJobExperience(player, "Miner", plugin.getConfigManager().getInt("xp.miner.ore"));
+                if (jobLevel < plugin.getConfig().getInt("buff_levels.miner", 5)) {
+                    addJobExperience(player, "Miner", plugin.getConfigManager().getInt("xp.miner.ore"));
+                }
             }
         }
     }
@@ -55,7 +60,10 @@ public class JobEventListener implements Listener {
             Player player = event.getPlayer();
             String activeJob = plugin.getJobManager().getActiveJob(player);
             if (activeJob != null && activeJob.equals("Fisher")) {
-                addJobExperience(player, "Fisher", plugin.getConfigManager().getInt("xp.fisher.fish"));
+                int jobLevel = plugin.getJobManager().getJobLevel(player, activeJob);
+                if (jobLevel < plugin.getConfig().getInt("buff_levels.fisher", 5)) {
+                    addJobExperience(player, "Fisher", plugin.getConfigManager().getInt("xp.fisher.fish"));
+                }
             }
         }
     }
@@ -66,7 +74,10 @@ public class JobEventListener implements Listener {
         if (player != null) {
             String activeJob = plugin.getJobManager().getActiveJob(player);
             if (activeJob != null && activeJob.equals("Butcher")) {
-                addJobExperience(player, "Butcher", plugin.getConfigManager().getInt("xp.butcher.kill"));
+                int jobLevel = plugin.getJobManager().getJobLevel(player, activeJob);
+                if (jobLevel < plugin.getConfig().getInt("buff_levels.butcher", 5)) {
+                    addJobExperience(player, "Butcher", plugin.getConfigManager().getInt("xp.butcher.kill"));
+                }
             }
         }
     }
@@ -76,7 +87,10 @@ public class JobEventListener implements Listener {
         Player player = event.getPlayer();
         String activeJob = plugin.getJobManager().getActiveJob(player);
         if (activeJob != null && activeJob.equals("Farmer")) {
-            addJobExperience(player, "Farmer", plugin.getConfigManager().getInt("xp.farmer.harvest"));
+            int jobLevel = plugin.getJobManager().getJobLevel(player, activeJob);
+            if (jobLevel < plugin.getConfig().getInt("buff_levels.farmer", 5)) {
+                addJobExperience(player, "Farmer", plugin.getConfigManager().getInt("xp.farmer.harvest"));
+            }
         }
     }
 
@@ -84,8 +98,6 @@ public class JobEventListener implements Listener {
         plugin.getJobManager().addExperience(player, jobName, amount);
         double money = plugin.getConfigManager().getDouble("money." + jobName.toLowerCase());
         plugin.getEconomy().depositPlayer(player, money);
-        player.sendMessage(plugin.getConfigManager().getColoredMessage("money_earned")
-                .replace("%amount%", String.format("%.2f", money)));
     }
 }
 
